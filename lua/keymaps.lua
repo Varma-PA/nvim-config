@@ -65,8 +65,8 @@ keymap("t", "<Esc>", "<C-\\><C-n>")     -- Exit terminal mode with Esc
 -----------------------------------------------------------
 -- Bufferline (tabs)
 -----------------------------------------------------------
-keymap("n", "<A-Tab>", "<cmd>BufferLineCycleNext<CR>") -- Next Tab Option+Tab
-keymap("n", "<A-S-Tab>", "<cmd>BufferLineCyclePrev<CR>") -- Previous Tab Option+Shift+Tab
+keymap("n", "<S-l>", "<cmd>BufferLineCycleNext<CR>") -- Next Tab: Shift+l
+keymap("n", "<S-h>", "<cmd>BufferLineCyclePrev<CR>") -- Previous Tab: Shift+h
 
 -- Close tab and go to next buffer (or nvim-tree if no tabs left)
 -- Smart close function (used by keymap and commands)
@@ -92,15 +92,28 @@ end
 keymap("n", "<leader>x", function() smart_close(false, false) end)
 
 -- Override :q, :q!, :wq, :wq! commands
-vim.api.nvim_create_user_command("Q", function(opts) smart_close(false, opts.bang) end, { bang = true })
-vim.api.nvim_create_user_command("Wq", function(opts) smart_close(true, opts.bang) end, { bang = true })
-vim.cmd("cabbrev q Q")
-vim.cmd("cabbrev wq Wq")
+-- vim.api.nvim_create_user_command("Q", function(opts) smart_close(false, opts.bang) end, { bang = true })
+-- vim.api.nvim_create_user_command("Wq", function(opts) smart_close(true, opts.bang) end, { bang = true })
+-- vim.cmd("cabbrev q Q")
+-- vim.cmd("cabbrev wq Wq")
 
 -----------------------------------------------------------
 -- Telescope
 -----------------------------------------------------------
 keymap("n", "<leader>ff", "<cmd>Telescope find_files<CR>")
 keymap("n", "<leader>fg", "<cmd>Telescope live_grep<CR>")
+keymap("n", "<leader>fw", function()
+  require("telescope.builtin").live_grep({
+    additional_args = { "--word-regexp" }  -- Whole word match only
+  })
+end)  -- Search whole word only (foo won't match foobar)
 keymap("n", "<leader>fb", "<cmd>Telescope buffers<CR>")
 keymap("n", "<leader>/", "<cmd>Telescope current_buffer_fuzzy_find<CR>")  -- Find in current file
+
+-----------------------------------------------------------
+-- Move lines
+-----------------------------------------------------------
+keymap("n", "<A-j>", ":m .+1<CR>==") -- move line up(n)
+keymap("n", "<A-k>", ":m .-2<CR>==") -- move line down(n)
+keymap("v", "<A-j>", ":m '>+1<CR>gv=gv") -- move line up(v)
+keymap("v", "<A-k>", ":m '<-2<CR>gv=gv") -- move line down(v)

@@ -88,6 +88,10 @@ return {
         mapping = cmp.mapping.preset.insert({
           ["<C-Space>"] = cmp.mapping.complete(),
           ["<CR>"] = cmp.mapping.confirm({ select = true }),
+          ["<Down>"] = cmp.mapping.select_next_item(), -- Next item
+          ["<Up>"] = cmp.mapping.select_prev_item(), -- Previous item
+          ["<C-d>"] = cmp.mapping.scroll_docs(4),  -- Scroll docs down
+          ["<C-u>"] = cmp.mapping.scroll_docs(-4), -- Scroll docs up
           ["<Tab>"] = cmp.mapping(function(fallback)
             if cmp.visible() then
               cmp.select_next_item()

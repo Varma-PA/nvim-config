@@ -35,6 +35,8 @@ vim.opt.incsearch = true           -- Incremental search
 vim.opt.termguicolors = true       -- Better colors
 vim.opt.signcolumn = "yes"         -- Always show sign column
 vim.opt.showmode = false           -- Don't show mode (NORMAL, INSERT)
+vim.opt.splitright = true          -- Vertical splits open to the right
+vim.opt.splitbelow = true          -- Horizontal splits open below
 
 -----------------------------------------------------------
 -- Undo / Backup
