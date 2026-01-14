@@ -10,12 +10,20 @@ return {
         json = { "prettier" },
         html = { "prettier" },
         css = { "prettier" },
+        scss = { "prettier" },
         markdown = { "prettier" },
       },
-      format_on_save = {
-        timeout_ms = 500,
-        lsp_fallback = true,
+      formatters = {
+        prettier = {
+          command = "npx",
+          args = { "prettier", "--stdin-filepath", "$FILENAME" },
+        },
       },
+      format_on_save = {
+        timeout_ms = 3000,
+        lsp_fallback = false,
+      },
+      notify_on_error = true,
     })
   end,
 }
