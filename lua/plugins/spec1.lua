@@ -15,12 +15,27 @@ return {
         dark = { "tokyonight-storm", "catppuccin-mocha", "rose-pine-main" },
         light = { "tokyonight-day", "catppuccin-latte", "rose-pine-dawn" },
       }
-      
+
+      -- File to save theme preference
+      local theme_file = vim.fn.stdpath("data") .. "/theme_preference.lua"
+
+      -- Load saved preference or use defaults
       local current_mode = "dark"
       local current_index = 1
+      local ok, saved = pcall(dofile, theme_file)
+      if ok and saved then
+        current_mode = saved.mode or "dark"
+        current_index = saved.index or 1
+      end
 
-      -- Set initial theme
-      vim.cmd("colorscheme " .. themes[current_mode][current_index])
+      -- Save theme preference
+      local function save_theme()
+        local file = io.open(theme_file, "w")
+        if file then
+          file:write(string.format('return { mode = "%s", index = %d }', current_mode, current_index))
+          file:close()
+        end
+      end
 
       -- Fix cursor line for light/dark
       local function fix_cursorline()
@@ -29,11 +44,16 @@ return {
         end
       end
 
+      -- Set initial theme
+      vim.cmd("colorscheme " .. themes[current_mode][current_index])
+      fix_cursorline()
+
       -- Toggle light/dark
       vim.keymap.set("n", "<leader>tt", function()
         current_mode = current_mode == "dark" and "light" or "dark"
         vim.cmd("colorscheme " .. themes[current_mode][current_index])
         fix_cursorline()
+        save_theme()
         print("Theme: " .. themes[current_mode][current_index])
       end, { desc = "Toggle light/dark theme" })
 
@@ -42,6 +62,7 @@ return {
         current_index = current_index % #themes[current_mode] + 1
         vim.cmd("colorscheme " .. themes[current_mode][current_index])
         fix_cursorline()
+        save_theme()
         print("Theme: " .. themes[current_mode][current_index])
       end, { desc = "Next theme" })
     end,
