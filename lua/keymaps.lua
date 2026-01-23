@@ -63,12 +63,9 @@ keymap("t", "<C-`>", "<cmd>close<CR>")  -- Close terminal with same key
 keymap("t", "<Esc>", "<C-\\><C-n>")     -- Exit terminal mode with Esc
 
 -----------------------------------------------------------
--- Bufferline (tabs)
+-- Buffer management
 -----------------------------------------------------------
-keymap("n", "<S-l>", "<cmd>BufferLineCycleNext<CR>") -- Next Tab: Shift+l
-keymap("n", "<S-h>", "<cmd>BufferLineCyclePrev<CR>") -- Previous Tab: Shift+h
-
--- Close tab and go to next buffer (or nvim-tree if no tabs left)
+-- Close buffer and go to next buffer (or nvim-tree if no buffers left)
 -- Smart close function (used by keymap and commands)
 local function smart_close(save, force)
   local buf = vim.api.nvim_get_current_buf()
@@ -84,7 +81,8 @@ local function smart_close(save, force)
     require("nvim-tree.api").tree.focus()
     vim.cmd("bwipeout" .. (force and "!" or "") .. " " .. buf)
   else
-    vim.cmd("BufferLineCyclePrev")
+    -- Go to previous buffer, then close current
+    vim.cmd("bprev")
     vim.cmd("bwipeout" .. (force and "!" or "") .. " " .. buf)
   end
 end

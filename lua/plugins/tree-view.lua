@@ -1,10 +1,24 @@
 return {
   "nvim-tree/nvim-tree.lua",
+  dependencies = { "nvim-tree/nvim-web-devicons" },
   config = function()
+    -- Load web-devicons for file icons
+    require("nvim-web-devicons").setup()
+    
     require("nvim-tree").setup({
       sync_root_with_cwd = true,
       update_focused_file = {
         enable = true,  -- Highlight current file in tree
+      },
+      renderer = {
+        icons = {
+          show = {
+            file = true,
+            folder = true,
+            folder_arrow = true,
+            git = true,
+          },
+        },
       },
       actions = {
         open_file = {
