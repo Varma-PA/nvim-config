@@ -115,3 +115,15 @@ keymap("n", "<A-j>", ":m .+1<CR>==") -- move line up(n)
 keymap("n", "<A-k>", ":m .-2<CR>==") -- move line down(n)
 keymap("v", "<A-j>", ":m '>+1<CR>gv=gv") -- move line up(v)
 keymap("v", "<A-k>", ":m '<-2<CR>gv=gv") -- move line down(v)
+
+-----------------------------------------------------------
+-- Buffer Management 
+-----------------------------------------------------------
+keymap("n", "<leader>bb", "<cmd>b#<CR>")
+-----------------------------------------------------------
+-- Markdown Preview
+-----------------------------------------------------------
+keymap("n", "<leader>mp", function()
+  -- Ensure plugin is loaded before calling command
+  pcall(vim.cmd, "MarkdownPreviewToggle")
+end, { desc = "Toggle markdown preview" })
