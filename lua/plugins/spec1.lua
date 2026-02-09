@@ -12,7 +12,16 @@ return {
     config = function()
       -- Available themes (dark, light)
       local themes = {
-        dark = { "rose-pine-main" },
+        dark = {
+          "rose-pine-main",       -- Warm dark
+          "tokyonight",           -- Default Tokyo Night
+          "tokyonight-storm",     -- Storm variant
+          "tokyonight-night",     -- Night variant
+          "tokyonight-moon",      -- Moon variant
+          "catppuccin-mocha",     -- Catppuccin dark
+          "catppuccin-macchiato", -- Macchiato variant
+          "catppuccin-frappe",    -- Frappe variant
+        },
         light = {
           "rose-pine-dawn",      -- Creamy beige (your favorite)
           "tokyonight-day",      -- Light blue-gray
@@ -20,6 +29,8 @@ return {
           "morning",             -- Bright white (built-in)
           "shine",               -- Light gray (built-in)
           "peachpuff",           -- Peach tinted (built-in)
+          "default",             -- Pure white (built-in)
+          "zellner",             -- Light gray (built-in)
         },
       }
 
@@ -76,6 +87,8 @@ return {
           ["morning"] = { 65535, 65535, 65535 },         -- #ffffff (bright white)
           ["shine"] = { 61166, 61166, 61166 },           -- #eeeeee (light gray)
           ["peachpuff"] = { 65535, 62965, 59110 },       -- #ffdab9 (peach)
+          ["default"] = { 65535, 65535, 65535 },         -- #ffffff (pure white)
+          ["zellner"] = { 61166, 61166, 61166 },         -- #eeeeee (light gray)
         }
 
         local rgb = theme_colors[theme_name]

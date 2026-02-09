@@ -13,7 +13,11 @@ return {
     dependencies = { "williamboman/mason.nvim" },
     config = function()
       require("mason-lspconfig").setup({
-        ensure_installed = { "ts_ls" },  -- Add "eslint" when you have ESLint installed in your project
+        ensure_installed = { "ts_ls", "dockerls" },
+        -- Don't auto-setup ESLint (avoids "Unable to find ESLint library" when project has no eslint)
+        handlers = {
+          eslint = function() end,  -- Skip ESLint setup; enable in lsp.config when project has eslint
+        },
       })
     end,
   },
@@ -45,6 +49,10 @@ return {
         },
       }
       vim.lsp.enable("ts_ls")
+
+      -- Dockerfile: syntax + completion
+      vim.lsp.config.dockerls = { capabilities = capabilities }
+      vim.lsp.enable("dockerls")
 
       -- ESLint (uncomment when you have ESLint in your project)
       -- vim.lsp.config.eslint = { capabilities = capabilities }
