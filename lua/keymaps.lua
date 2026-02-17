@@ -9,11 +9,7 @@ keymap("i", "<C-s>", "<Esc>:w<CR>")  -- Also works in insert mode
 keymap("n", "<leader>q", ":q<CR>")
 keymap("n", "<leader>Q", ":qa!<CR>")  -- Quit all without saving
 
--- Better window navigation
-keymap("n", "<C-h>", "<C-w>h")
-keymap("n", "<C-j>", "<C-w>j")
-keymap("n", "<C-k>", "<C-w>k")
-keymap("n", "<C-l>", "<C-w>l")
+-- Window navigation: handled by vim-tmux-navigator (Ctrl-h/j/k/l)
 
 -- Window splits
 keymap("n", "<leader>sv", "<cmd>vsplit<CR>")  -- Vertical split
@@ -58,7 +54,8 @@ keymap("n", "<leader>e", "<cmd>NvimTreeToggle<CR>")
 -----------------------------------------------------------
 -- Terminal
 -----------------------------------------------------------
-keymap("n", "<C-`>", "<cmd>belowright split | terminal<CR>")
+keymap("n", "<C-`>", "<cmd>belowright split | terminal<CR>")  -- Terminal below
+keymap("n", "<leader>tv", "<cmd>vertical rightbelow terminal<CR>", { desc = "Terminal right (full height)" })  -- Terminal right pane
 keymap("t", "<C-`>", "<cmd>close<CR>")  -- Close terminal with same key
 keymap("t", "<Esc>", "<C-\\><C-n>")     -- Exit terminal mode with Esc
 
@@ -107,6 +104,14 @@ keymap("n", "<leader>fw", function()
 end)  -- Search whole word only (foo won't match foobar)
 keymap("n", "<leader>fb", "<cmd>Telescope buffers<CR>")
 keymap("n", "<leader>/", "<cmd>Telescope current_buffer_fuzzy_find<CR>")  -- Find in current file
+
+-----------------------------------------------------------
+-- Surround / wrap in brackets
+-----------------------------------------------------------
+keymap("n", "<leader>b", "ysiw)", { desc = "Wrap word in ()" })
+keymap("n", "<leader>B", "ysiw]", { desc = "Wrap word in []" })
+keymap("v", "<leader>b", "S)", { desc = "Wrap selection in ()" })
+keymap("v", "<leader>B", "S]", { desc = "Wrap selection in []" })
 
 -----------------------------------------------------------
 -- Move lines
