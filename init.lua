@@ -64,6 +64,21 @@ vim.api.nvim_create_autocmd("InsertLeave", {
 require("keymaps")
 require("config.lazy")
 
+-- nvim-treesitter setup runs after all plugins are loaded (so it's on rtp)
+vim.api.nvim_create_autocmd("User", {
+  pattern = "LazyDone",
+  once = true,
+  callback = function()
+    local ok, configs = pcall(require, "nvim-treesitter.configs")
+    if ok and configs then
+      configs.setup({
+        ensure_installed = { "markdown", "markdown_inline", "dockerfile" },
+        highlight = { enable = true },
+      })
+    end
+  end,
+})
+
 
 -----------------------------------------------------------
 -- Disable Mouse 

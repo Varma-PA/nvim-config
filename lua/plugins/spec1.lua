@@ -3,6 +3,7 @@ return {
   { "rose-pine/neovim", name = "rose-pine", lazy = false },
   { "folke/tokyonight.nvim", lazy = false, priority = 1000 },
   { "catppuccin/nvim", name = "catppuccin", lazy = false },
+  { "mhartington/oceanic-next", lazy = false },  -- OceanicNext (dark), OceanicNextLight (light)
 
   -- Theme setup and toggle
   {
@@ -21,11 +22,13 @@ return {
           "catppuccin-mocha",     -- Catppuccin dark
           "catppuccin-macchiato", -- Macchiato variant
           "catppuccin-frappe",    -- Frappe variant
+          "OceanicNext",          -- Oceanic Next dark
         },
         light = {
           "rose-pine-dawn",      -- Creamy beige (your favorite)
           "tokyonight-day",      -- Light blue-gray
           "catppuccin-latte",    -- Warm light theme
+          "OceanicNextLight",    -- Oceanic Next light
           "morning",             -- Bright white (built-in)
           "shine",               -- Light gray (built-in)
           "peachpuff",           -- Peach tinted (built-in)
@@ -89,6 +92,7 @@ return {
           ["peachpuff"] = { 65535, 62965, 59110 },       -- #ffdab9 (peach)
           ["default"] = { 65535, 65535, 65535 },         -- #ffffff (pure white)
           ["zellner"] = { 61166, 61166, 61166 },         -- #eeeeee (light gray)
+          ["OceanicNextLight"] = { 61423, 61681, 62965 }, -- Oceanic Next light
         }
 
         local rgb = theme_colors[theme_name]
