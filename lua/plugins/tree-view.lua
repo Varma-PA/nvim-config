@@ -18,7 +18,7 @@ return {
           min = vim.diagnostic.severity.HINT,
           max = vim.diagnostic.severity.ERROR,
         },
-        icons = { hint = "H", info = "I", warning = "W", error = "E" },
+        icons = { hint = "◆", info = "ℹ", warning = "⚠", error = "✖" },
       },
       renderer = {
         highlight_diagnostics = "name",  -- Color filename by severity (red = error)
@@ -29,6 +29,19 @@ return {
             folder_arrow = true,
             git = true,
             diagnostics = true,
+            modified = true,
+          },
+          glyphs = {
+            modified = "●",   -- Unsaved buffer changes
+            git = {
+              unstaged = "✎",   -- Modified, not staged (pencil)
+              staged = "✓",     -- Staged for commit (check)
+              unmerged = "⚠",  -- Merge conflict (warning)
+              renamed = "➜",   -- Renamed (arrow)
+              untracked = "★", -- New, not in git (star)
+              deleted = "−",   -- Deleted (minus)
+              ignored = "◌",   -- In .gitignore (dotted circle)
+            },
           },
         },
       },
@@ -42,11 +55,13 @@ return {
     })
 
     -- Color filenames in tree by LSP diagnostic severity
+    -- Modified (unsaved) icon in orange so it's distinct from error (red)
     local function set_diag_highlights()
       vim.api.nvim_set_hl(0, "NvimTreeDiagnosticErrorFileHL", { fg = "#ff6b6b", default = true })
       vim.api.nvim_set_hl(0, "NvimTreeDiagnosticWarnFileHL", { fg = "#ffd93d", default = true })
       vim.api.nvim_set_hl(0, "NvimTreeDiagnosticInfoFileHL", { fg = "#6bcb77", default = true })
       vim.api.nvim_set_hl(0, "NvimTreeDiagnosticHintFileHL", { fg = "#4d96ff", default = true })
+      vim.api.nvim_set_hl(0, "NvimTreeModifiedIcon", { fg = "#f0a050", default = true })  -- Orange for modified
     end
     vim.api.nvim_create_autocmd("ColorScheme", { callback = set_diag_highlights })
     set_diag_highlights()

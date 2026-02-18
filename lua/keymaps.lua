@@ -103,6 +103,7 @@ keymap("n", "<leader>fw", function()
   })
 end)  -- Search whole word only (foo won't match foobar)
 keymap("n", "<leader>fb", "<cmd>Telescope buffers<CR>")
+keymap("n", "<leader>fd", "<cmd>Telescope diagnostics<CR>", { desc = "List diagnostics, Enter to jump to line" })
 keymap("n", "<leader>/", "<cmd>Telescope current_buffer_fuzzy_find<CR>")  -- Find in current file
 
 -----------------------------------------------------------
