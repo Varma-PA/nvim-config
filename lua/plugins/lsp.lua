@@ -58,11 +58,28 @@ return {
       -- vim.lsp.config.eslint = { capabilities = capabilities }
       -- vim.lsp.enable("eslint")
 
+      -- Go to definition in a new vertical split (like Ctrl+click "open to the side")
+      local function definition_in_vsplit()
+        local params = vim.lsp.util.make_position_params()
+        vim.lsp.buf_request(0, "textDocument/definition", params, function(err, result, _)
+          if err or not result or not result[1] then return end
+          local loc = result[1]
+          local uri = loc.uri or loc.targetUri
+          if not uri then return end
+          local fname = vim.uri_to_fname(uri)
+          local range = loc.range or loc.targetRange
+          local start = range and range.start or { line = 0, character = 0 }
+          vim.cmd("vsplit " .. vim.fn.fnameescape(fname))
+          vim.api.nvim_win_set_cursor(0, { start.line + 1, start.character })
+        end)
+      end
+
       -- Keymaps (only active when LSP attaches)
       vim.api.nvim_create_autocmd("LspAttach", {
         callback = function(args)
           local opts = { buffer = args.buf }
-          vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts) -- Go to definition
+          vim.keymap.set("n", "gd", vim.lsp.buf.definition, opts) -- Go to definition (current window)
+          vim.keymap.set("n", "gD", definition_in_vsplit, opts)    -- Go to definition in vertical split
           vim.keymap.set("n", "K", vim.lsp.buf.hover, opts) -- Hover over symbol
           vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts) -- Rename symbol
           vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts) -- Code action

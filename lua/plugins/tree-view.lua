@@ -4,8 +4,20 @@ return {
   config = function()
     -- Load web-devicons for file icons
     require("nvim-web-devicons").setup()
-    
+
+    local function on_attach(bufnr)
+      local api = require("nvim-tree.api")
+      local function opts(desc)
+        return { desc = "nvim-tree: " .. desc, buffer = bufnr, noremap = true, silent = true, nowait = true }
+      end
+      api.config.mappings.default_on_attach(bufnr)
+      -- Remap live filter so Space (leader) isn't triggered: F = start filter, f = clear filter
+      vim.keymap.set("n", "F", api.filter.live.start, opts("Live Filter: Start"))
+      vim.keymap.set("n", "f", api.filter.live.clear, opts("Live Filter: Clear"))
+    end
+
     require("nvim-tree").setup({
+      on_attach = on_attach,
       sync_root_with_cwd = true,
       update_focused_file = {
         enable = true,  -- Highlight current file in tree
