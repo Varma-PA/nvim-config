@@ -19,6 +19,14 @@ keymap("n", "<leader>sx", "<cmd>close<CR>")   -- Close split
 -- Clear search highlight
 keymap("n", "<leader>h", ":nohlsearch<CR>")
 
+-----------------------------------------------------------
+-- Session restore (persistence.nvim)
+-----------------------------------------------------------
+keymap("n", "<leader>sl", function() require("persistence").load() end, { desc = "Restore session for current dir" })
+keymap("n", "<leader>sL", function() require("persistence").load({ last = true }) end, { desc = "Restore last session" })
+keymap("n", "<leader>sS", function() require("persistence").select() end, { desc = "Select session to restore" })
+keymap("n", "<leader>sd", function() require("persistence").stop() end, { desc = "Don't save session on exit" })
+
 
 -----------------------------------------------------------
 -- Quality of life

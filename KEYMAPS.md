@@ -174,6 +174,19 @@
 
 ---
 
+## 💾 Session restore (persistence.nvim)
+
+| Shortcut | Description |
+|----------|-------------|
+| `Space sl` | Restore session for **current directory** (reopen last buffers/layout for this project) |
+| `Space sL` | Restore **last session** (any directory) |
+| `Space sS` | **Select** which saved session to restore |
+| `Space sd` | **Don’t save** session on exit (for this session only) |
+
+Sessions are saved automatically when you quit Neovim (per directory, and per git branch if `branch = true`).
+
+---
+
 ## 🛠️ Commands
 
 | Command | Description |
