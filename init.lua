@@ -72,7 +72,19 @@ vim.api.nvim_create_autocmd("User", {
     local ok, configs = pcall(require, "nvim-treesitter.configs")
     if ok and configs then
       configs.setup({
-        ensure_installed = { "markdown", "markdown_inline", "dockerfile" },
+        ensure_installed = {
+          "markdown",
+          "markdown_inline",
+          "dockerfile",
+          -- Kotlin / Spring Boot
+          "kotlin",
+          "java",
+          "yaml",
+          "xml",
+          "toml",
+          "properties",
+          "groovy",
+        },
         highlight = { enable = true },
       })
     end

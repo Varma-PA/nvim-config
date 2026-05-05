@@ -77,10 +77,43 @@
 | `gD` | Go to definition in **vertical split** |
 | `K` | Hover / documentation |
 | `Space rn` | Rename symbol |
-| `Space ca` | Code action (quick fix, etc.) |
+| `Space ca` | Code action (quick fix, etc.). On a line with diagnostics: **Ask opencode to explain** / **Ask opencode to fix** when Opencode LSP is enabled |
+| `Ctrl+q` | Same as `Space ca` (normal + visual when LSP attached) |
 | `Space d` | Show diagnostic under cursor |
 | `[d` | Previous diagnostic |
 | `]d` | Next diagnostic |
+
+---
+
+## 🤖 Opencode (opencode.nvim)
+
+Leader prefix **`Space o`** (`<leader>o`). Keymaps live in `lua/keymaps.lua` (registered on `LazyDone`). Snacks integration: `lua/plugins/opencode.lua`.
+
+**Context in prompts:** Type placeholders in any ask prompt (`Space oa`, `Ctrl+a`), or use the shortcuts below. Each resolves to a **path or location** OpenCode can read — the **whole file** is included when you use **`@buffer`** (current buffer’s file on disk). **Save the buffer** before asking if you need unsaved changes in context. Other built-ins from opencode.nvim include `@buffers` (open listed buffers), `@visible` (visible lines in windows), `@diff` (git diff), `@diagnostics` (buffer diagnostics).
+
+| Shortcut | Mode | Description |
+|----------|------|-------------|
+| `Space oa` | Normal, visual | Ask / prompt (uses `@this`) |
+| `Space os` | Normal, visual | Opencode palette (prompts, session, commands) |
+| `Space ot` | Normal, **terminal** | Toggle Opencode panel |
+| `Space ox` | Normal, **terminal** | Interrupt current session |
+| `Space on` | Normal | New session |
+| `Space ou` | Normal | Undo last action in session |
+| `Space oR` | Normal | Redo last undone action (`R` = Shift+r) |
+| `Space oS` | Normal | Select session |
+| `Space oc` | Normal | Compact session (shrink context) |
+| `Space od` | Normal, visual | Ask about diagnostics (`@diagnostics` + `@this`) |
+| `Space ob` | Normal, visual | Ask with **full file** + cursor/selection (`@buffer` + `@this`; canned “review” prompt) |
+| `go` | Normal, visual | Operator: send range to Opencode prompt |
+| `goo` | Normal | Operator: send current line to prompt |
+| `Shift+Ctrl+u` / `Shift+Ctrl+d` | Normal | Scroll Opencode transcript half a page |
+| `Ctrl+a` | Normal, visual | Same as `Space oa` (replaces default increment; use `+`) |
+| `Ctrl+x` | Normal, visual | Same as `Space os` (replaces default decrement; use `-`) |
+| `Ctrl+.` | Normal, **terminal** | Same as `Space ot` |
+| `+` / `-` | Normal | Increment / decrement number (workaround while `Ctrl+a` / `Ctrl+x` are mapped) |
+| `Alt+a` | Insert (Snacks picker input) | Send from picker to Opencode (`<a-a>` in config) |
+
+**Permission diff** (when OpenCode asks to edit a file): buffer-local keys — `da` accept whole edit, `dr` reject, `q` close tab; see opencode.nvim README for hunk keys (`dp` / `do`).
 
 ---
 
@@ -98,6 +131,17 @@
 | `Option+j` | Move line down |
 | `Option+k` | Move line up |
 | `Option+j` / `Option+k` (visual) | Move selection down / up |
+
+---
+
+## 💬 Comments (mini.comment)
+
+| Shortcut | Description |
+|----------|-------------|
+| `gcc` | Toggle comment on **current line** |
+| `gc` + motion | Toggle comment for **motion** (e.g. `gc3j` = 3 lines, `gcip` = inner paragraph) |
+| `gc` (visual) | Toggle comment on **selection** |
+| `gc` as textobject | Use with operators (e.g. `dgc` = delete comment, `vac` = select around comment) |
 
 ---
 

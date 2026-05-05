@@ -13,7 +13,15 @@ return {
     dependencies = { "williamboman/mason.nvim" },
     config = function()
       require("mason-lspconfig").setup({
-        ensure_installed = { "ts_ls", "dockerls" },
+        ensure_installed = {
+          "ts_ls",
+          "dockerls",
+          -- Kotlin / Java / Spring Boot
+          "kotlin_language_server",
+          "jdtls",
+          "yamlls",
+          "lemminx",
+        },
         -- Don't auto-setup ESLint (avoids "Unable to find ESLint library" when project has no eslint)
         handlers = {
           eslint = function() end,  -- Skip ESLint setup; enable in lsp.config when project has eslint
@@ -54,6 +62,22 @@ return {
       vim.lsp.config.dockerls = { capabilities = capabilities }
       vim.lsp.enable("dockerls")
 
+      -- Kotlin (Gradle / Maven); classpath from the build tool
+      vim.lsp.config.kotlin_language_server = { capabilities = capabilities }
+      vim.lsp.enable("kotlin_language_server")
+
+      -- Java (Spring Java sources, mixed Kotlin/Java repos)
+      vim.lsp.config.jdtls = { capabilities = capabilities }
+      vim.lsp.enable("jdtls")
+
+      -- application.yml / application.yaml (defaults include Schema Store + format via nvim-lspconfig)
+      vim.lsp.config.yamlls = { capabilities = capabilities }
+      vim.lsp.enable("yamlls")
+
+      -- pom.xml, Spring XML configs
+      vim.lsp.config.lemminx = { capabilities = capabilities }
+      vim.lsp.enable("lemminx")
+
       -- ESLint (uncomment when you have ESLint in your project)
       -- vim.lsp.config.eslint = { capabilities = capabilities }
       -- vim.lsp.enable("eslint")
@@ -83,6 +107,9 @@ return {
           vim.keymap.set("n", "K", vim.lsp.buf.hover, opts) -- Hover over symbol
           vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, opts) -- Rename symbol
           vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, opts) -- Code action
+          vim.keymap.set({ "n", "x" }, "<C-q>", vim.lsp.buf.code_action, vim.tbl_extend("force", opts, {
+            desc = "Code action (same as Space ca)",
+          }))
           vim.keymap.set("n", "<leader>d", vim.diagnostic.open_float, opts) -- Show error message
           vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, opts) -- Previous error
           vim.keymap.set("n", "]d", vim.diagnostic.goto_next, opts) -- Next error

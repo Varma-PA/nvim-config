@@ -19,6 +19,10 @@ return {
     require("nvim-tree").setup({
       on_attach = on_attach,
       sync_root_with_cwd = true,
+      filters = {
+        dotfiles = false,
+        git_ignored = false,
+      },
       update_focused_file = {
         enable = true,  -- Highlight current file in tree
       },

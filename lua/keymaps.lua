@@ -1,5 +1,123 @@
 local keymap = vim.keymap.set
 
+-----------------------------------------------------------
+-- Opencode (nickjvandyke/opencode.nvim)
+-- Leader prefix `<leader>o…` — also `<leader>ca` + explain/fix on a diagnostic line (see lua/plugins/lsp.lua).
+--
+-- | Key | Mode | Action |
+-- |-----|------|--------|
+-- | `<leader>oa` | n, x | Ask / prompt (`@this`) |
+-- | `<leader>os` | n, x | Command palette (prompts, session, commands) |
+-- | `<leader>ot` | n, t | Toggle Opencode panel |
+-- | `<leader>ox` | n, t | Interrupt session |
+-- | `<leader>on` | n | New session |
+-- | `<leader>ou` | n | Undo last action in session |
+-- | `<leader>oR` | n | Redo last undone action |
+-- | `<leader>oS` | n | Select session |
+-- | `<leader>oc` | n | Compact session (shrink context) |
+-- | `<leader>od` | n, x | Ask about diagnostics (`@diagnostics` + `@this`) |
+-- | `<leader>ob` | n, x | Ask with full file + cursor (`@buffer` + `@this`) |
+-- | `go` | n, x | Operator: range → opencode prompt |
+-- | `goo` | n | Operator: current line → prompt |
+-- | `<S-C-u>` / `<S-C-d>` | n | Scroll Opencode messages half page |
+-- | `<C-a>` | n, x | Ask (same as `<leader>oa`; steals increment — use `+`) |
+-- | `<C-x>` | n, x | Palette (same as `<leader>os`; use `-` for decrement) |
+-- | `<C-.>` | n, t | Toggle panel (same as `<leader>ot`) |
+-- | `+` / `-` | n | Increment / decrement number (unmap bypass for stolen `<C-a>`/`<C-x>`) |
+-- | Snacks picker input | i | `<a-a>` (Alt-a) send to Opencode — see `lua/plugins/opencode.lua` |
+-- | Permission diff tab | n | `da` accept edit · `dr` reject · `q` close (buffer-local) |
+-----------------------------------------------------------
+
+--- opencode.nvim uses promises; cancelling ask/select or dismissing server pick calls `reject()` with no
+--- payload, which can still trip "unhandled promise rejection: {}". Terminal `.catch` fixes that.
+local function oc_swallow(promise)
+  if not (promise and type(promise.catch) == "function") then
+    return
+  end
+  promise:catch(function(err)
+    if err == nil or err == "" then
+      return
+    end
+    if type(err) == "table" and next(err) == nil then
+      return
+    end
+    vim.notify(vim.inspect(err), vim.log.levels.WARN, { title = "opencode" })
+  end)
+end
+
+local function setup_opencode_keymaps()
+  local ok, opencode = pcall(require, "opencode")
+  if not ok then
+    return
+  end
+  local oc_cmd = require("opencode.api.command").command
+
+  keymap({ "n", "x" }, "<leader>oa", function()
+    oc_swallow(opencode.ask("@this: ", { submit = true }))
+  end, { desc = "Opencode: ask (prompt)" })
+  keymap({ "n", "x" }, "<leader>os", function()
+    oc_swallow(opencode.select())
+  end, { desc = "Opencode: palette (prompts & commands)" })
+  keymap({ "n", "t" }, "<leader>ot", function() opencode.toggle() end, { desc = "Opencode: toggle panel" })
+  keymap({ "n", "t" }, "<leader>ox", function()
+    oc_swallow(oc_cmd("session.interrupt"))
+  end, { desc = "Opencode: stop / interrupt" })
+  keymap("n", "<leader>on", function()
+    oc_swallow(oc_cmd("session.new"))
+  end, { desc = "Opencode: new session" })
+  keymap("n", "<leader>ou", function()
+    oc_swallow(oc_cmd("session.undo"))
+  end, { desc = "Opencode: undo last action" })
+  keymap("n", "<leader>oR", function()
+    oc_swallow(oc_cmd("session.redo"))
+  end, { desc = "Opencode: redo" })
+  keymap("n", "<leader>oS", function()
+    oc_swallow(oc_cmd("session.select"))
+  end, { desc = "Opencode: select session" })
+  keymap("n", "<leader>oc", function()
+    oc_swallow(oc_cmd("session.compact"))
+  end, { desc = "Opencode: compact session" })
+  keymap({ "n", "x" }, "<leader>od", function()
+    oc_swallow(opencode.ask(
+      "Explain the diagnostics below and suggest a minimal fix. Prefer the issue at the cursor.\n@diagnostics\n\n@this",
+      { submit = true }
+    ))
+  end, { desc = "Opencode: ask about diagnostics" })
+  -- `@buffer` expands to the current file path; OpenCode loads the whole file from disk (save unsaved edits first).
+  keymap({ "n", "x" }, "<leader>ob", function()
+    oc_swallow(opencode.ask(
+      "Review this file using the full contents plus the cursor/selection as the focal point. Note bugs, edge cases, and clarity issues.\n@buffer\n\n@this",
+      { submit = true }
+    ))
+  end, { desc = "Opencode: full file + cursor (@buffer + @this)" })
+
+  keymap({ "n", "x" }, "go", function() return opencode.operator("@this ") end, { desc = "Opencode: operator (range → prompt)", expr = true })
+  keymap("n", "goo", function() return opencode.operator("@this ") .. "_" end, { desc = "Opencode: operator (line)", expr = true })
+
+  keymap("n", "<S-C-u>", function()
+    oc_swallow(oc_cmd("session.half.page.up"))
+  end, { desc = "Opencode: scroll messages up" })
+  keymap("n", "<S-C-d>", function()
+    oc_swallow(oc_cmd("session.half.page.down"))
+  end, { desc = "Opencode: scroll messages down" })
+
+  keymap({ "n", "x" }, "<C-a>", function()
+    oc_swallow(opencode.ask("@this: ", { submit = true }))
+  end, { desc = "Opencode: ask (same as <leader>oa)" })
+  keymap({ "n", "x" }, "<C-x>", function()
+    oc_swallow(opencode.select())
+  end, { desc = "Opencode: palette (same as <leader>os)" })
+  keymap({ "n", "t" }, "<C-.>", function() opencode.toggle() end, { desc = "Opencode: toggle (same as <leader>ot)" })
+  keymap("n", "+", "<C-a>", { desc = "Increment number", noremap = true })
+  keymap("n", "-", "<C-x>", { desc = "Decrement number", noremap = true })
+end
+
+vim.api.nvim_create_autocmd("User", {
+  pattern = "LazyDone",
+  once = true,
+  callback = setup_opencode_keymaps,
+})
+
 -- Save file
 keymap("n", "<leader>w", ":w<CR>")
 keymap("n", "<C-s>", ":w<CR>")
@@ -103,13 +221,38 @@ keymap("n", "<leader>x", function() smart_close(false, false) end)
 -----------------------------------------------------------
 -- Telescope
 -----------------------------------------------------------
+vim.api.nvim_create_autocmd("User", {
+  pattern = "LazyDone",
+  once = true,
+  callback = function()
+    local ok, actions = pcall(require, "telescope.actions")
+    if not ok then
+      return
+    end
+    require("telescope").setup({
+      defaults = {
+        mappings = {
+          i = {
+            ["<C-d>"] = actions.delete_buffer,
+          },
+          n = {
+            ["dd"] = actions.delete_buffer,
+          },
+        },
+      },
+    })
+  end,
+})
+
 keymap("n", "<leader>ff", "<cmd>Telescope find_files<CR>")
 keymap("n", "<leader>fg", "<cmd>Telescope live_grep<CR>")
 keymap("n", "<leader>fw", function()
   require("telescope.builtin").live_grep({
-    additional_args = { "--word-regexp" }  -- Whole word match only
+    additional_args = function()
+      return { "--hidden", "--word-regexp" } -- hidden + whole word (foo won't match foobar)
+    end,
   })
-end)  -- Search whole word only (foo won't match foobar)
+end)
 keymap("n", "<leader>fb", "<cmd>Telescope buffers<CR>")
 keymap("n", "<leader>fd", "<cmd>Telescope diagnostics<CR>", { desc = "List diagnostics, Enter to jump to line" })
 keymap("n", "<leader>/", "<cmd>Telescope current_buffer_fuzzy_find<CR>")  -- Find in current file
