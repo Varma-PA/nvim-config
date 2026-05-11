@@ -65,6 +65,9 @@ return {
         enabled = true,
       })
 
+      -- Replace bundled permission-diff autocmds (path escaping, promise :catch, pcall around diffpatch).
+      require("opencode_edits_fix").apply()
+
       -- Keymaps: lua/keymaps.lua (`LazyDone` → `setup_opencode_keymaps`)
     end,
   },
