@@ -1,176 +1,164 @@
 return {
-  -- Themes
   { "rose-pine/neovim", name = "rose-pine", lazy = false },
   { "folke/tokyonight.nvim", lazy = false, priority = 1000 },
   { "catppuccin/nvim", name = "catppuccin", lazy = false },
-  { "mhartington/oceanic-next", lazy = false },  -- OceanicNext (dark), OceanicNextLight (light)
+  { "mhartington/oceanic-next", lazy = false },
 
-  -- Theme setup and toggle
   {
-    "nvim-lua/plenary.nvim",  -- Just using this as a hook to run config
+    "nvim-lua/plenary.nvim",
     lazy = false,
-    priority = 999,
+    priority = 10,
     config = function()
-      -- Available themes (dark, light)
-      local themes = {
-        dark = {
-          "rose-pine-main",       -- Warm dark
-          "tokyonight",           -- Default Tokyo Night
-          "tokyonight-storm",     -- Storm variant
-          "tokyonight-night",     -- Night variant
-          "tokyonight-moon",      -- Moon variant
-          "catppuccin-mocha",     -- Catppuccin dark
-          "catppuccin-macchiato", -- Macchiato variant
-          "catppuccin-frappe",    -- Frappe variant
-          "OceanicNext",          -- Oceanic Next dark
-        },
-        light = {
-          "rose-pine-dawn",      -- Creamy beige (your favorite)
-          "tokyonight-day",      -- Light blue-gray
-          "catppuccin-latte",    -- Warm light theme
-          "OceanicNextLight",    -- Oceanic Next light
-          "morning",             -- Bright white (built-in)
-          "shine",               -- Light gray (built-in)
-          "peachpuff",           -- Peach tinted (built-in)
-          "default",             -- Pure white (built-in)
-          "zellner",             -- Light gray (built-in)
-        },
+      local dark = {
+        "rose-pine-main",
+        "tokyonight",
+        "tokyonight-storm",
+        "tokyonight-night",
+        "tokyonight-moon",
+        "catppuccin-mocha",
+        "catppuccin-macchiato",
+        "catppuccin-frappe",
+        "OceanicNext",
+      }
+      local light = {
+        "rose-pine-dawn",
+        "tokyonight-day",
+        "catppuccin-latte",
+        "OceanicNextLight",
+        "morning",
+        "shine",
+        "peachpuff",
+        "default",
+        "zellner",
       }
 
-      -- File to save theme preference
-      local theme_file = vim.fn.stdpath("data") .. "/theme_preference.lua"
+      local cycle = { "default" }
+      vim.list_extend(cycle, dark)
+      for _, name in ipairs(light) do
+        if name ~= "default" then
+          cycle[#cycle + 1] = name
+        end
+      end
 
-      -- Load saved preference or use defaults
-      local current_mode = "dark"
-      local current_index = 1
-      local ok, saved = pcall(dofile, theme_file)
-      if ok and saved then
-        current_mode = saved.mode or "dark"
-        current_index = saved.index or 1
-        -- Ensure index is within bounds for the current mode
-        if current_mode == "dark" or current_mode == "light" then
-          local max_index = #themes[current_mode]
-          if current_index < 1 or current_index > max_index then
-            current_index = 1
+      local light_set = {}
+      for _, name in ipairs(light) do
+        light_set[name] = true
+      end
+
+      local idx = 1
+
+      local function macos_fallback_bg()
+        if vim.fn.has("mac") ~= 1 then
+          return "dark"
+        end
+        vim.fn.system({ "defaults", "read", "-g", "AppleInterfaceStyle" })
+        if vim.v.shell_error ~= 0 then
+          return "light"
+        end
+        return "dark"
+      end
+
+      local function parse_osc11_rgb(seq)
+        if type(seq) ~= "string" or not seq:find("]11;", 1, true) then
+          return nil
+        end
+        local rh, gh, bh = seq:match("rgb:([0-9a-fA-F]+)/([0-9a-fA-F]+)/([0-9a-fA-F]+)")
+        if rh then
+          local function chan(h)
+            local n = assert(tonumber(h, 16))
+            if #h <= 2 then
+              return n / 255
+            end
+            return n / 65535
           end
+          return chan(rh), chan(gh), chan(bh)
         end
+        local hx = seq:match("#([0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F])")
+        if hx then
+          local n = assert(tonumber(hx, 16))
+          local r = math.floor(n / 65536) % 256 / 255
+          local g = math.floor(n / 256) % 256 / 255
+          local b = n % 256 / 255
+          return r, g, b
+        end
+        return nil
       end
 
-      -- Save theme preference
-      local function save_theme()
-        local file = io.open(theme_file, "w")
-        if file then
-          file:write(string.format('return { mode = "%s", index = %d }', current_mode, current_index))
-          file:close()
+      local function srgb_luminance(r, g, b)
+        local function lin(c)
+          return c <= 0.03928 and c / 12.92 or math.pow((c + 0.055) / 1.055, 2.4)
         end
+        local R, G, B = lin(r), lin(g), lin(b)
+        return 0.2126 * R + 0.7152 * G + 0.0722 * B
       end
 
-      -- Theme-specific configurations
-      local theme_configs = {}
+      local osc_done = false
+      local osc_group = vim.api.nvim_create_augroup("NvimDefaultBgOsc", { clear = true })
 
-      -- Fix cursor line for light/dark
-      local function fix_cursorline()
-        if current_mode == "light" then
-          vim.api.nvim_set_hl(0, "CursorLine", { bg = "#e0e0e0" })
-        end
-      end
-
-      -- Sync iTerm colors with Neovim theme
-      local function sync_iterm_colors(theme_name)
-        -- Only sync for light themes
-        if current_mode ~= "light" then
+      local function apply_osc_bg_if_default(seq)
+        if osc_done or idx ~= 1 then
           return
         end
-
-        -- Map of theme names to background colors for iTerm (RGB values 0-65535)
-        local theme_colors = {
-          ["rose-pine-dawn"] = { 64250, 62780, 60652 },  -- #faf4ed (creamy)
-          ["tokyonight-day"] = { 57669, 57890, 59175 },  -- #e1e2e7 (light blue-gray)
-          ["catppuccin-latte"] = { 61423, 61681, 62965 }, -- #eff1f5 (warm light)
-          ["morning"] = { 65535, 65535, 65535 },         -- #ffffff (bright white)
-          ["shine"] = { 61166, 61166, 61166 },           -- #eeeeee (light gray)
-          ["peachpuff"] = { 65535, 62965, 59110 },       -- #ffdab9 (peach)
-          ["default"] = { 65535, 65535, 65535 },         -- #ffffff (pure white)
-          ["zellner"] = { 61166, 61166, 61166 },         -- #eeeeee (light gray)
-          ["OceanicNextLight"] = { 61423, 61681, 62965 }, -- Oceanic Next light
-        }
-
-        local rgb = theme_colors[theme_name]
-        if rgb and vim.fn.has("mac") == 1 then
-          -- Use AppleScript to set iTerm tab color
-          local script = string.format(
-            [[tell application "iTerm2"
-              tell current window
-                tell current tab
-                  set background color to {%d, %d, %d}
-                end tell
-              end tell
-            end tell]],
-            rgb[1], rgb[2], rgb[3]
-          )
-
-          -- Execute in background to avoid blocking
-          vim.fn.jobstart({ "osascript", "-e", script }, {
-            detach = true,
-          })
-
-          -- Also set tab color using iTerm escape sequences (more reliable)
-          local r = math.floor(rgb[1] / 256)
-          local g = math.floor(rgb[2] / 256)
-          local b = math.floor(rgb[3] / 256)
-          -- iTerm tab color escape sequence
-          vim.api.nvim_out_write(string.format("\027]6;1;bg;red;brightness;%d\a", r))
-          vim.api.nvim_out_write(string.format("\027]6;1;bg;green;brightness;%d\a", g))
-          vim.api.nvim_out_write(string.format("\027]6;1;bg;blue;brightness;%d\a", b))
+        local r, g, b = parse_osc11_rgb(seq)
+        if not r then
+          return
+        end
+        osc_done = true
+        pcall(vim.api.nvim_del_augroup_by_id, osc_group)
+        local mode = srgb_luminance(r, g, b) > 0.45 and "light" or "dark"
+        if vim.o.background ~= mode then
+          vim.o.background = mode
+          vim.cmd.colorscheme("default")
         end
       end
 
-      -- Apply theme with configuration
-      local function apply_theme(theme_name)
-        -- Run theme-specific config if exists
-        if theme_configs[theme_name] then
-          theme_configs[theme_name]()
+      vim.api.nvim_create_autocmd("TermResponse", {
+        group = osc_group,
+        callback = function(args)
+          local seq = args.data and args.data.sequence or ""
+          apply_osc_bg_if_default(seq)
+        end,
+      })
+
+      vim.defer_fn(function()
+        if not osc_done then
+          io.stdout:write("\027]11;?\027\\")
+          if io.stdout.flush then
+            io.stdout:flush()
+          end
         end
+      end, 0)
 
-        -- Set background for light themes
-        if current_mode == "light" then
-          vim.o.background = "light"
-        else
-          vim.o.background = "dark"
+      vim.defer_fn(function()
+        pcall(vim.api.nvim_del_augroup_by_id, osc_group)
+      end, 400)
+
+      local function apply(i)
+        local name = cycle[i]
+        idx = i
+        if name == "default" then
+          vim.cmd.colorscheme("default")
+          return
         end
-
-        -- Apply colorscheme
-        vim.cmd("colorscheme " .. theme_name)
-        fix_cursorline()
-
-        -- Sync iTerm colors
-        sync_iterm_colors(theme_name)
+        vim.o.background = light_set[name] and "light" or "dark"
+        vim.cmd.colorscheme(name)
       end
 
-      -- Set initial theme
-      apply_theme(themes[current_mode][current_index])
+      -- Startup: built-in colorscheme only (no third-party scheme). `set background&` is wrong for many light terminals.
+      vim.o.background = macos_fallback_bg()
+      vim.cmd.colorscheme("default")
 
-      -- Toggle light/dark
       vim.keymap.set("n", "<leader>tt", function()
-        current_mode = current_mode == "dark" and "light" or "dark"
-        current_index = 1  -- Reset to first theme when switching modes
-        apply_theme(themes[current_mode][current_index])
-        save_theme()
-        print("Theme: " .. themes[current_mode][current_index])
-      end, { desc = "Toggle light/dark theme" })
+        vim.o.background = vim.o.background == "light" and "dark" or "light"
+        vim.cmd.colorscheme(cycle[idx])
+        print("Background: " .. vim.o.background)
+      end, { desc = "Toggle light/dark (background)" })
 
-      -- Cycle through themes (only useful if there are multiple themes per mode)
       vim.keymap.set("n", "<leader>tn", function()
-        local max_themes = #themes[current_mode]
-        if max_themes > 1 then
-          current_index = current_index % max_themes + 1
-          apply_theme(themes[current_mode][current_index])
-          save_theme()
-          print(string.format("Theme [%d/%d]: %s", current_index, max_themes, themes[current_mode][current_index]))
-        else
-          print("Only one theme available in " .. current_mode .. " mode: " .. themes[current_mode][1])
-        end
-      end, { desc = "Next theme" })
+        local next_i = idx % #cycle + 1
+        apply(next_i)
+        print(string.format("Theme [%d/%d]: %s", next_i, #cycle, cycle[next_i]))
+      end, { desc = "Next colorscheme" })
     end,
   },
 }

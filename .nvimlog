@@ -3,3 +3,6 @@ WRN 2026-04-06T10:32:26.286 ?.89829    server_start:199: Failed to start server:
 WRN 2026-05-06T10:03:08.788 ?.87735    server_start:199: Failed to start server: operation not permitted: /var/folders/05/nzwmh8ds2qx8f9qw_bnn1ldr0000gp/T/nvim.spenmetcha/uPRDGJ/nvim.87735.0
 WRN 2026-05-06T10:03:14.394 ?.87892    server_start:199: Failed to start server: operation not permitted: /var/folders/05/nzwmh8ds2qx8f9qw_bnn1ldr0000gp/T/nvim.spenmetcha/GAX3TQ/nvim.87892.0
 WRN 2026-05-06T10:04:23.107 ?.90890    server_start:199: Failed to start server: operation not permitted: /var/folders/05/nzwmh8ds2qx8f9qw_bnn1ldr0000gp/T/nvim.spenmetcha/l3fHIf/nvim.90890.0
+WRN 2026-05-12T09:58:39.643 ?.75209    server_start:199: Failed to start server: operation not permitted: /var/folders/05/nzwmh8ds2qx8f9qw_bnn1ldr0000gp/T/nvim.spenmetcha/Qy75j6/nvim.75209.0
+WRN 2026-05-12T10:05:23.323 ?.7803     server_start:199: Failed to start server: operation not permitted: /var/folders/05/nzwmh8ds2qx8f9qw_bnn1ldr0000gp/T/nvim.spenmetcha/fvY17L/nvim.7803.0
+WRN 2026-05-12T10:05:23.579 ?.7807     server_start:199: Failed to start server: operation not permitted: /var/folders/05/nzwmh8ds2qx8f9qw_bnn1ldr0000gp/T/nvim.spenmetcha/CEo2ce/nvim.7807.0
