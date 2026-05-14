@@ -1,13 +1,15 @@
 return {
-  { "rose-pine/neovim", name = "rose-pine", lazy = false },
-  { "folke/tokyonight.nvim", lazy = false, priority = 1000 },
-  { "catppuccin/nvim", name = "catppuccin", lazy = false },
-  { "mhartington/oceanic-next", lazy = false },
+  -- Colorscheme packs + init run first (high priority) so statusline, tree icons, etc. never
+  -- sample Vim's default highlights. Higher number = loads earlier in lazy.nvim.
+  { "rose-pine/neovim", name = "rose-pine", lazy = false, priority = 1990 },
+  { "folke/tokyonight.nvim", lazy = false, priority = 1990 },
+  { "catppuccin/nvim", name = "catppuccin", lazy = false, priority = 1990 },
 
   {
     "nvim-lua/plenary.nvim",
     lazy = false,
-    priority = 10,
+    priority = 2000,
+    dependencies = { "mhartington/oceanic-next" },
     config = function()
       local dark = {
         "rose-pine-main",

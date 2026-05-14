@@ -77,4 +77,17 @@ return {
     tabline = {},
     extensions = {},
   },
+  config = function(_, opts)
+    -- LazyDone runs after all startup plugins; schedule so statusline hl matches final theme
+    -- (covers OSC-driven theme tweaks that may land slightly after plenary's first colorscheme).
+    vim.api.nvim_create_autocmd("User", {
+      pattern = "LazyDone",
+      once = true,
+      callback = function()
+        vim.schedule(function()
+          require("lualine").setup(opts)
+        end)
+      end,
+    })
+  end,
 }

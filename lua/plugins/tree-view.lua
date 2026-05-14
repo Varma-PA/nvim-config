@@ -1,8 +1,5 @@
 return {
   "nvim-tree/nvim-tree.lua",
-  -- Plenary (priority 10) applies OceanicNext after default-priority plugins; load tree later
-  -- so nvim-web-devicons.setup() runs with the real colorscheme, not Vim's default.
-  priority = 5,
   dependencies = { "nvim-tree/nvim-web-devicons" },
   config = function()
     -- Load web-devicons for file icons
