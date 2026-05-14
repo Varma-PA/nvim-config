@@ -46,6 +46,27 @@ return {
       end
 
       local idx = 1
+      --- Until you use `<leader>tn`, OSC may adjust light/dark and swap OceanicNext vs OceanicNextLight.
+      local auto_oceanic = true
+
+      local function index_of(name)
+        for i, n in ipairs(cycle) do
+          if n == name then
+            return i
+          end
+        end
+        return 1
+      end
+
+      local function apply_oceanic_for_background()
+        if vim.o.background == "light" then
+          idx = index_of("OceanicNextLight")
+          vim.cmd.colorscheme("OceanicNextLight")
+        else
+          idx = index_of("OceanicNext")
+          vim.cmd.colorscheme("OceanicNext")
+        end
+      end
 
       local function macos_fallback_bg()
         if vim.fn.has("mac") ~= 1 then
@@ -93,10 +114,10 @@ return {
       end
 
       local osc_done = false
-      local osc_group = vim.api.nvim_create_augroup("NvimDefaultBgOsc", { clear = true })
+      local osc_group = vim.api.nvim_create_augroup("NvimTermBgOsc", { clear = true })
 
-      local function apply_osc_bg_if_default(seq)
-        if osc_done or idx ~= 1 then
+      local function apply_osc_bg(seq)
+        if osc_done or not auto_oceanic then
           return
         end
         local r, g, b = parse_osc11_rgb(seq)
@@ -106,17 +127,15 @@ return {
         osc_done = true
         pcall(vim.api.nvim_del_augroup_by_id, osc_group)
         local mode = srgb_luminance(r, g, b) > 0.45 and "light" or "dark"
-        if vim.o.background ~= mode then
-          vim.o.background = mode
-          vim.cmd.colorscheme("default")
-        end
+        vim.o.background = mode
+        apply_oceanic_for_background()
       end
 
       vim.api.nvim_create_autocmd("TermResponse", {
         group = osc_group,
         callback = function(args)
           local seq = args.data and args.data.sequence or ""
-          apply_osc_bg_if_default(seq)
+          apply_osc_bg(seq)
         end,
       })
 
@@ -144,17 +163,22 @@ return {
         vim.cmd.colorscheme(name)
       end
 
-      -- Startup: built-in colorscheme only (no third-party scheme). `set background&` is wrong for many light terminals.
       vim.o.background = macos_fallback_bg()
-      vim.cmd.colorscheme("default")
+      apply_oceanic_for_background()
 
       vim.keymap.set("n", "<leader>tt", function()
         vim.o.background = vim.o.background == "light" and "dark" or "light"
-        vim.cmd.colorscheme(cycle[idx])
+        local name = cycle[idx]
+        if name == "OceanicNext" or name == "OceanicNextLight" then
+          apply_oceanic_for_background()
+        else
+          vim.cmd.colorscheme(name)
+        end
         print("Background: " .. vim.o.background)
       end, { desc = "Toggle light/dark (background)" })
 
       vim.keymap.set("n", "<leader>tn", function()
+        auto_oceanic = false
         local next_i = idx % #cycle + 1
         apply(next_i)
         print(string.format("Theme [%d/%d]: %s", next_i, #cycle, cycle[next_i]))

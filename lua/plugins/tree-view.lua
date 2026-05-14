@@ -1,5 +1,8 @@
 return {
   "nvim-tree/nvim-tree.lua",
+  -- Plenary (priority 10) applies OceanicNext after default-priority plugins; load tree later
+  -- so nvim-web-devicons.setup() runs with the real colorscheme, not Vim's default.
+  priority = 5,
   dependencies = { "nvim-tree/nvim-web-devicons" },
   config = function()
     -- Load web-devicons for file icons
@@ -63,6 +66,7 @@ return {
       },
       actions = {
         open_file = {
+          quit_on_open = true, -- hide tree after open / vsplit (Ctrl+v) / split; use <leader>e to show again
           window_picker = {
             enable = false,  -- Open in last focused window
           },
@@ -79,8 +83,42 @@ return {
       vim.api.nvim_set_hl(0, "NvimTreeDiagnosticHintFileHL", { fg = "#4d96ff", default = true })
       vim.api.nvim_set_hl(0, "NvimTreeModifiedIcon", { fg = "#f0a050", default = true })  -- Orange for modified
     end
-    vim.api.nvim_create_autocmd("ColorScheme", { callback = set_diag_highlights })
+
+    -- setup() only runs once; on ColorScheme nvim-web-devicons normally calls set_up_highlights()
+    -- without allow_override, so linked/placeholder DevIcon* groups are never replaced (muted icons).
+    -- Force true + schedule so we run after other ColorScheme handlers and after the tree buffer exists.
+    local function devicons_and_tree_redraw()
+      pcall(function()
+        local web = require("nvim-web-devicons")
+        if web.set_up_highlights then
+          web.set_up_highlights(true)
+        end
+      end)
+      pcall(function()
+        local api = require("nvim-tree.api")
+        if api.tree.is_visible() then
+          api.tree.reload()
+        end
+      end)
+    end
+
+    local function schedule_devicons_and_tree()
+      vim.schedule(devicons_and_tree_redraw)
+    end
+
+    local function after_colorscheme()
+      set_diag_highlights()
+      schedule_devicons_and_tree()
+    end
+
+    vim.api.nvim_create_autocmd("ColorScheme", { callback = after_colorscheme })
     set_diag_highlights()
+
+    vim.api.nvim_create_autocmd("User", {
+      pattern = "LazyDone",
+      once = true,
+      callback = schedule_devicons_and_tree,
+    })
 
     -- Exclude nvim-tree from jumplist
     vim.api.nvim_create_autocmd("FileType", {
@@ -91,10 +129,11 @@ return {
       end,
     })
 
-    -- Auto-open nvim-tree on startup
+    -- Auto-open nvim-tree on startup; redraw after open so devicon highlights match final colorscheme.
     vim.api.nvim_create_autocmd("VimEnter", {
       callback = function()
         require("nvim-tree.api").tree.open()
+        schedule_devicons_and_tree()
       end,
     })
   end,
